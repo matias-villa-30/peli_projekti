@@ -3,10 +3,7 @@ import random
 from geopy import distance
 
 
-def dados():
-    dado_pelaaja = random.randint(1, 21)
-    dado_cpu = random.randint(1, 21)
-    return f"Sinun tulos on: {dado_pelaaja}\nCPU tulos on: {dado_cpu}"
+
 # Establish connection
 connection = mysql.connector.connect(
     host='localhost',
@@ -16,94 +13,134 @@ connection = mysql.connector.connect(
     password='',
     autocommit=True
 )
-print("You start at a random airport and you gotta travel to another random airport. \nYou will have available half the km of distance. \nTo earn km you can roll a dice and beat an algorithm\n")
-cursor = connection.cursor()
-play = input("Press enter to start the game.")
 
-if play == "":
-    # Query to get all airport names
-    airport_query = "SELECT ident, name, latitude_deg, longitude_deg FROM airport"
-    cursor.execute(airport_query)
-    airport_results = cursor.fetchall()
+# Functions
 
-    if airport_results:
-        # Choose a random starting airport
-        random_airport_1 = random.choice(airport_results)
-        print(f"Olet tässä: {random_airport_1[1]}")
+def get_starting_airport():
 
-        # Query to get the corresponding country name for the selected airport
-        country_query_1 = """
-        SELECT country.name 
-        FROM country 
-        JOIN airport ON airport.iso_country = country.iso_country
-        WHERE airport.name = %s
-        """
-        cursor.execute(country_query_1, (random_airport_1[1],))
-        country_result_1 = cursor.fetchone()
+    alku_lentoasema = "SELECT name FROM airport"
+    # Initialize cursor
+    cursor = connection.cursor()
+    cursor.execute(alku_lentoasema)
+    airports = cursor.fetchall()
+    random_alku_lentoasema = random.choice(airports)
+    return random_alku_lentoasema[0]
 
-        if country_result_1:
-            print(f"Mää on: {country_result_1[0]}\n")
+def get_destination_airport():
 
-        # Get the coordinates of the first airport
-        coords_1 = (random_airport_1[2], random_airport_1[3])  # latitude_deg, longitude_deg
+    loppu_lentoasema = "SELECT name FROM airport"
 
-    # Choose a random destination airport
-    if airport_results:
-        random_airport_2 = random.choice(airport_results)
-        print(f"Sinun pitää mennä: {random_airport_2[1]}")
+    cursor = connection.cursor()
+    cursor.execute(loppu_lentoasema)
+    airports_2 = cursor.fetchall()
+    random_loppu_lentoasema = random.choice(airports_2)
 
-        # Query to get the corresponding country name for the second airport
-        country_query_2 = """
-        SELECT country.name 
-        FROM country 
-        JOIN airport ON airport.iso_country = country.iso_country
-        WHERE airport.name = %s
-        """
-        cursor.execute(country_query_2, (random_airport_2[1],))
-        country_result_2 = cursor.fetchone()
-
-        if country_result_2:
-            print(f"Mää on: {country_result_2[0]}\n")
-
-        # Get the coordinates of the second airport
-        coords_2 = (random_airport_2[2], random_airport_2[3])  # latitude_deg, longitude_deg
-
-        # Calculate the distance between the two airports
-        välimatka = distance.distance(coords_1, coords_2).km
-        print(f"Välimatka on: {välimatka:.2f} km")
-        km_available = välimatka / 2
-        print(f"Sinulla on {km_available:.2f} km käytössä")
-
-    # Option to show nearby airports
-    opciones = int(input("\nSinä voit: \n1-Matkustaa\n2-Valita peli\n"))
-    if opciones == 1:
-        # Select airports where the distance is less than or equal to km_available
-        nearby_airports = []
-        for airport in airport_results:
-            airport_coords = (airport[2], airport[3])  # latitude_deg, longitude_deg of each airport
-            välimatka_airport = distance.distance(coords_1, airport_coords).km
-
-            if välimatka_airport <= km_available and airport[0] != random_airport_1[0]:
-                nearby_airports.append((airport[1], välimatka_airport))
-
-        # Randomly pick up to 10 nearby airports
-        a = 1
-        if nearby_airports:
-            limited_nearby_airports = random.sample(nearby_airports, min(10, len(nearby_airports)))
-
-            print("\nLähellä olevat lentoasemat: ")
-            for airport_name, dist in limited_nearby_airports:
+    return random_loppu_lentoasema[0]
 
 
-                print(f"{a}){airport_name}: {dist:.2f} km")
-                a += 1
-        else:
-            print("Ei lentoasemia lähellä.")
+def get_distance():
 
-    if opciones == 2:
-        print(dados())
+    cursor = connection.cursor()
+
+    global aeropuerto_1
+    aeropuerto_1 = get_starting_airport()
+    aeropuerto_2 = get_destination_airport()
 
 
-# Close the cursor and connection
-cursor.close()
-connection.close()
+    cursor.execute("SELECT latitude_deg, longitude_deg FROM airport WHERE name=%s", (aeropuerto_1,))
+    tulos = cursor.fetchone()
+
+    cursor.execute("SELECT latitude_deg, longitude_deg FROM airport WHERE name=%s", (aeropuerto_2,))
+    tulos_2 = cursor.fetchone()
+
+    distancia = distance.distance(tulos, tulos_2).km
+    global km_available
+    km_available = distancia / 2
+
+    return f"Distance from: {aeropuerto_1} to: {aeropuerto_2} is: {distancia:.2f} km.\nYou have {km_available:.2f}km available to reach your destination.\n"
+
+
+def get_country():
+    cursor = connection.cursor()
+    global aeropuerto_1
+    cursor.execute("SELECT country.name FROM country JOIN airport ON airport.iso_country = country.iso_country WHERE airport.name=%s", (aeropuerto_1,))
+    pais = cursor.fetchone()
+
+
+    return pais[0]
+
+def loop_game():
+   pass
+
+
+print("\nYou start at a random airport and you gotta travel to another random airport. "
+      "\nYou will have available half the km of distance. "
+      "\nTo earn km you can guess the country of your current airport"
+      "\nor you can roll the dice."
+      "\nIf you guess incorrectly you will lose 15% of your current available km."
+      "\nIf you lose at dice, you will lose 10% of your current available km."
+      "\nIf you guess the country you will get 15% of your current available km."
+      "\nIf you win at dice, you will get 10% of your current available km."
+      "\nThe game ends when you reach your destination or you run out of available km.\n"
+      "\n\tGood luck!\n")
+
+play = input("Press enter to start the game.\n")
+
+
+def run_game():
+    global km_available
+
+    if play == "":
+
+        print(get_distance())
+        while True:
+            opcion = int(input("Select your next move: \n1-Roll dice.\n2-Guess the country\n3-Check location\n4-Quit game\n"))
+            if opcion == 1:
+                dado_humano = random.randint(1, 21)
+                dado_computer = random.randint(1, 21)
+                puntos_dados = km_available * 0.10
+
+                if dado_humano > dado_computer:
+                    km_available = km_available + puntos_dados
+                    print(f"Player wins: {dado_humano} Computer: {dado_computer}")
+                    print(f"Km available: {km_available:.2f}")
+                else:
+                    km_available = km_available - puntos_dados
+                    print(f"CPU wins: {dado_humano} player: {dado_humano}")
+                    print(f"Km available: {km_available:.2f}")
+
+            elif opcion == 2:
+                puntos_pregunta = km_available * 0.15
+                pais = input("Enter the country name: ")
+                if pais == get_country():
+                    km_available = km_available + puntos_pregunta
+                    print("The country was: \n")
+                    print(get_country())
+                    print(f"Player wins: {km_available:.2f}")
+                else:
+                    km_available = km_available - puntos_pregunta
+                    print("The country was: \n")
+                    print(get_country())
+                    print(f"CPU wins: {km_available:.2f}")
+
+            elif opcion == 3:
+                print(get_distance())
+
+            elif opcion == 4:
+                print("You lost!")
+                break
+
+
+
+
+
+
+
+
+
+
+
+
+
+if __name__ == "__main__":
+    run_game()
