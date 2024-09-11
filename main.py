@@ -93,7 +93,7 @@ def run_game():
     if play == "":
 
         print(get_distance())
-        while True:
+        while km_available > 0:
             opcion = int(input("Select your next move: \n1-Roll dice.\n2-Guess the country\n3-Check location\n4-Quit game\n"))
             if opcion == 1:
                 dado_humano = random.randint(1, 21)
@@ -124,11 +124,14 @@ def run_game():
                     print(f"CPU wins: {km_available:.2f}")
 
             elif opcion == 3:
-                print(get_distance())
+                global aeropuerto_1
+                print(f"Your current location is: {aeropuerto_1}")
 
             elif opcion == 4:
                 print("You lost!")
                 break
+            if km_available == 0:
+                print("You lost!\nYou are out of km")
 
 
 
