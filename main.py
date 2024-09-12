@@ -2,8 +2,6 @@ import mysql.connector
 import random
 from geopy import distance
 
-
-
 # Establish connection
 connection = mysql.connector.connect(
     host='localhost',
@@ -29,7 +27,6 @@ def get_starting_airport():
 def get_destination_airport():
 
     loppu_lentoasema = "SELECT name FROM airport"
-
     cursor = connection.cursor()
     cursor.execute(loppu_lentoasema)
     airports_2 = cursor.fetchall()
@@ -41,11 +38,9 @@ def get_destination_airport():
 def get_distance():
 
     cursor = connection.cursor()
-
     global aeropuerto_1
     aeropuerto_1 = get_starting_airport()
     aeropuerto_2 = get_destination_airport()
-
 
     cursor.execute("SELECT latitude_deg, longitude_deg FROM airport WHERE name=%s", (aeropuerto_1,))
     tulos = cursor.fetchone()
@@ -53,12 +48,12 @@ def get_distance():
     cursor.execute("SELECT latitude_deg, longitude_deg FROM airport WHERE name=%s", (aeropuerto_2,))
     tulos_2 = cursor.fetchone()
 
+    global distancia
     distancia = distance.distance(tulos, tulos_2).km
     global km_available
     km_available = distancia / 2
 
-    return f"Distance from: {aeropuerto_1} to: {aeropuerto_2} is: {distancia:.2f} km.\nYou have {km_available:.2f}km available to reach your destination.\n"
-
+    return f"Distance from: {aeropuerto_1} to: {aeropuerto_2} is: {distancia:.2f} km.\nYou have {km_available:.2f} km available to reach your destination.\n"
 
 def get_country():
     cursor = connection.cursor()
@@ -66,11 +61,7 @@ def get_country():
     cursor.execute("SELECT country.name FROM country JOIN airport ON airport.iso_country = country.iso_country WHERE airport.name=%s", (aeropuerto_1,))
     pais = cursor.fetchone()
 
-
     return pais[0]
-
-def loop_game():
-   pass
 
 
 print("\nYou start at a random airport and you gotta travel to another random airport. "
@@ -81,68 +72,67 @@ print("\nYou start at a random airport and you gotta travel to another random ai
       "\nIf you lose at dice, you will lose 10% of your current available km."
       "\nIf you guess the country you will get 15% of your current available km."
       "\nIf you win at dice, you will get 10% of your current available km."
-      "\nThe game ends when you reach your destination or you run out of available km.\n"
+      "\nThe game ends when you earned enough km to reach your destination or you run out of available km.\n"
       "\n\tGood luck!\n")
+
+
+def loop_game():
+    global km_available
+    global distancia
+
+    print(get_distance())
+    while km_available > 0 or km_available < distancia:
+        opcion = int(input(
+            "Select your next move: \n1-Roll dice.\n2-Guess the country\n3-Check location and distance\n4-Quit game\n"))
+        if opcion == 1:
+            dado_humano = random.randint(1, 21)
+            dado_computer = random.randint(1, 21)
+            puntos_dados = km_available * 0.10
+
+            if dado_humano > dado_computer:
+                km_available = km_available + puntos_dados
+                print(f"Player wins: {dado_humano} Computer: {dado_computer}")
+                print(f"Km available: {km_available:.2f}")
+            else:
+                km_available = km_available - puntos_dados
+                print(f"CPU wins: {dado_humano} player: {dado_humano}")
+                print(f"Km available: {km_available:.2f}")
+
+        elif opcion == 2:
+
+            puntos_pregunta = km_available * 0.15
+            print(f"You are at: {aeropuerto_1}")
+            pais = input("Enter the country name: ")
+            if pais.lower() == get_country().lower():
+
+                km_available = km_available + puntos_pregunta
+                print(f"Nice! You won {puntos_pregunta:.2f} points. The country was: ")
+                print(get_country())
+                print(f"You now have: {km_available:.2f} km available.")
+            else:
+                km_available = km_available - puntos_pregunta
+                print(f"Wrong! You lost {puntos_pregunta:.2f} points.")
+                print(f"You now have: {km_available:.2f} km available.")
+
+        elif opcion == 3:
+            # global aeropuerto_1
+            print(f"Your current location is: {aeropuerto_1}\nYou have: {km_available:.2f} km available.")
+
+        elif opcion == 4:
+            print("You lost!")
+            break
+        if km_available == 0:
+            print("You lost!\nYou are out of km")
+        elif km_available == distancia:
+            print("You won!\n You can now reach your destination.\n Congratulations!")
+
 
 play = input("Press enter to start the game.\n")
 
-
 def run_game():
-    global km_available
 
     if play == "":
-
-        print(get_distance())
-        while km_available > 0:
-            opcion = int(input("Select your next move: \n1-Roll dice.\n2-Guess the country\n3-Check location\n4-Quit game\n"))
-            if opcion == 1:
-                dado_humano = random.randint(1, 21)
-                dado_computer = random.randint(1, 21)
-                puntos_dados = km_available * 0.10
-
-                if dado_humano > dado_computer:
-                    km_available = km_available + puntos_dados
-                    print(f"Player wins: {dado_humano} Computer: {dado_computer}")
-                    print(f"Km available: {km_available:.2f}")
-                else:
-                    km_available = km_available - puntos_dados
-                    print(f"CPU wins: {dado_humano} player: {dado_humano}")
-                    print(f"Km available: {km_available:.2f}")
-
-            elif opcion == 2:
-                puntos_pregunta = km_available * 0.15
-                pais = input("Enter the country name: ")
-                if pais == get_country():
-                    km_available = km_available + puntos_pregunta
-                    print("The country was: \n")
-                    print(get_country())
-                    print(f"Player wins: {km_available:.2f}")
-                else:
-                    km_available = km_available - puntos_pregunta
-                    print("The country was: \n")
-                    print(get_country())
-                    print(f"CPU wins: {km_available:.2f}")
-
-            elif opcion == 3:
-                global aeropuerto_1
-                print(f"Your current location is: {aeropuerto_1}")
-
-            elif opcion == 4:
-                print("You lost!")
-                break
-            if km_available == 0:
-                print("You lost!\nYou are out of km")
-
-
-
-
-
-
-
-
-
-
-
+        loop_game()
 
 
 if __name__ == "__main__":
