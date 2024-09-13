@@ -1,5 +1,6 @@
 import mysql.connector
 import random
+import math
 from geopy import distance
 
 # Establish connection
@@ -13,6 +14,18 @@ connection = mysql.connector.connect(
 )
 
 # Functions
+
+def prime_numbers(dice):
+    on_alkuluku = True
+
+    for i in range(2, int(math.sqrt(alkuluku)) + 1):
+        if alkuluku % i == 0:
+            on_alkuluku = False
+
+        else:
+            on_alkuluku == True
+
+
 
 def get_starting_airport():
 
@@ -55,6 +68,10 @@ def get_distance():
 
     return f"Distance from: {aeropuerto_1} to: {aeropuerto_2} is: {distancia:.2f} km.\nYou have {km_available:.2f} km available to reach your destination.\n"
 
+def get_new_airport():
+    pass
+
+
 def get_country():
     cursor = connection.cursor()
     global aeropuerto_1
@@ -67,13 +84,57 @@ def get_country():
 print("\nYou start at a random airport and you gotta travel to another random airport. "
       "\nYou will have available half the km of distance. "
       "\nTo earn km you can guess the country of your current airport"
-      "\nor you can roll the dice."
+      "\nor you can roll the dice and play different dice mini games."
       "\nIf you guess incorrectly you will lose 15% of your current available km."
       "\nIf you lose at dice, you will lose 10% of your current available km."
       "\nIf you guess the country you will get 15% of your current available km."
       "\nIf you win at dice, you will get 10% of your current available km."
+      "\nIf you guess the country correctly, you will sent to a different random airport within your reach"
       "\nThe game ends when you earned enough km to reach your destination or you run out of available km.\n"
       "\n\tGood luck!\n")
+
+def even_odd(par_impar):
+    global km_available
+    global distancia
+
+    dado = random.randint(1, 21)
+
+    if par_impar.lower() == "even" and dado % 2 == 0:
+        puntos_dados = km_available * 0.10
+        km_available = km_available + puntos_dados
+        print(f"Result is: {dado}")
+        print(f"You won {puntos_dados:.2f} points. Your current km available is {km_available:.2f}")
+    elif par_impar.lower() == "odd" and dado % 2 != 0:
+        puntos_dados = km_available * 0.10
+
+        km_available = km_available + puntos_dados
+        print(f"Result is: {dado}")
+        print(f"You won {puntos_dados:.2f} points. Your current km available is {km_available:.2f}")
+    elif par_impar.lower() != "even" and par_impar.lower() != "odd":
+        print("Wrong input, back to main menu")
+    else:
+        puntos_dados = km_available * 0.10
+
+        km_available = km_available - puntos_dados
+        print(f"Result is: {dado}")
+        print(f"You lost {puntos_dados:.2f} points. Your current km available is {km_available:.2f}")
+
+
+def higher_dice(dado):
+    global km_available
+    global distancia
+    dado_humano = random.randint(1, 21)
+    dado_computer = random.randint(1, 21)
+    puntos_dados = km_available * 0.10
+
+    if dado_humano > dado_computer:
+        km_available = km_available + puntos_dados
+        print(f"Player wins: {dado_humano} Computer: {dado_computer}")
+        print(f"Km available: {km_available:.2f}")
+    else:
+        km_available = km_available - puntos_dados
+        print(f"CPU wins: {dado_humano} player: {dado_humano}")
+        print(f"Km available: {km_available:.2f}")
 
 
 def loop_game():
@@ -85,18 +146,17 @@ def loop_game():
         opcion = int(input(
             "Select your next move: \n1-Roll dice.\n2-Guess the country\n3-Check location and distance\n4-Quit game\n"))
         if opcion == 1:
-            dado_humano = random.randint(1, 21)
-            dado_computer = random.randint(1, 21)
-            puntos_dados = km_available * 0.10
+            juego = int(input("Select minigame: \n1-Higher roll.\n2-Even or odd.\n3-Prime number or not"))
+            if juego == 1:
+                higher_dice(juego)
 
-            if dado_humano > dado_computer:
-                km_available = km_available + puntos_dados
-                print(f"Player wins: {dado_humano} Computer: {dado_computer}")
-                print(f"Km available: {km_available:.2f}")
-            else:
-                km_available = km_available - puntos_dados
-                print(f"CPU wins: {dado_humano} player: {dado_humano}")
-                print(f"Km available: {km_available:.2f}")
+
+            elif juego == 2:
+                player_input = input("Even or odd: ")
+                even_odd(player_input)
+
+
+
 
         elif opcion == 2:
 
@@ -115,14 +175,16 @@ def loop_game():
                 print(f"You now have: {km_available:.2f} km available.")
 
         elif opcion == 3:
-            # global aeropuerto_1
             print(f"Your current location is: {aeropuerto_1}\nYou have: {km_available:.2f} km available.")
 
         elif opcion == 4:
             print("You lost!")
             break
+
         if km_available == 0:
             print("You lost!\nYou are out of km")
+            break
+
         elif km_available == distancia:
             print("You won!\n You can now reach your destination.\n Congratulations!")
 
