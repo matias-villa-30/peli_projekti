@@ -25,14 +25,26 @@ def prime_numbers(dice):
         if alkuluku % i == 0:
             on_alkuluku = False
 
+
     if dice.lower() == "yes" and on_alkuluku == True:
         puntos_primo = km_available * 0.10
         km_available = km_available + puntos_primo
-        print(f"{alkuluku} is a primer number! You won: {puntos_primo:.2f}, you now have {km_available:.2f} km available.")
-    else:
+        print(f"{alkuluku} is a prime number! You won: {puntos_primo:.2f}, you now have {km_available:.2f} km available.")
+
+    elif dice.lower() == "no" and on_alkuluku == False:
+        puntos_primo = km_available * 0.10
+        km_available = km_available + puntos_primo
+        print(f"{alkuluku} is not a prime number! You won: {puntos_primo:.2f}, you now have {km_available:.2f} km available.")
+
+    elif dice.lower() == "yes" and on_alkuluku == False:
         puntos_primo = km_available * 0.10
         km_available = km_available - puntos_primo
-        print(f"{alkuluku} is a primer number! You won: {puntos_primo:.2f}, you now have {km_available:.2f} km available.")
+        print(f"{alkuluku} is not a prime number. You lost: {puntos_primo:.2f}, you now have {km_available:.2f} km available.")
+
+    elif dice.lower() == "no" and on_alkuluku == True:
+        puntos_primo = km_available * 0.10
+        km_available = km_available - puntos_primo
+        print(f"{alkuluku} is a prime number. You lost: {puntos_primo:.2f}, you now have {km_available:.2f} km available.")
 
 
 def get_starting_airport():
