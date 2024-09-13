@@ -103,7 +103,6 @@ def get_country():
 def even_odd(par_impar):
     global km_available
     global distancia
-
     dado = random.randint(1, 21)
 
     if par_impar.lower() == "even" and dado % 2 == 0:
@@ -111,17 +110,18 @@ def even_odd(par_impar):
         km_available = km_available + puntos_dados
         print(f"Result is: {dado}")
         print(f"You won {puntos_dados:.2f} points. Your current km available is {km_available:.2f}")
+
     elif par_impar.lower() == "odd" and dado % 2 != 0:
         puntos_dados = km_available * 0.10
-
         km_available = km_available + puntos_dados
         print(f"Result is: {dado}")
         print(f"You won {puntos_dados:.2f} points. Your current km available is {km_available:.2f}")
+
     elif par_impar.lower() != "even" and par_impar.lower() != "odd":
         print("Wrong input, back to main menu")
+
     else:
         puntos_dados = km_available * 0.10
-
         km_available = km_available - puntos_dados
         print(f"Result is: {dado}")
         print(f"You lost {puntos_dados:.2f} points. Your current km available is {km_available:.2f}")
@@ -143,16 +143,35 @@ def higher_dice(dado):
         print(f"CPU wins: {dado_humano} player: {dado_humano}")
         print(f"Km available: {km_available:.2f}")
 
+def guess_country(pais):
+    global km_available
+    puntos_pregunta = km_available * 0.15
+    print(f"You are at: {aeropuerto_1}")
+
+    if pais.lower() == get_country().lower():
+        km_available = km_available + puntos_pregunta
+        print(f"Nice! You won {puntos_pregunta:.2f} points. The country was: ")
+        print(get_country())
+        print(f"You now have: {km_available:.2f} km available.")
+
+    else:
+        km_available = km_available - puntos_pregunta
+        print(f"Wrong! You lost {puntos_pregunta:.2f} points.")
+        print(f"You now have: {km_available:.2f} km available.")
+
 def loop_game():
     global km_available
     global distancia
 
     print(get_distance())
+
     while km_available > 0 or km_available < distancia:
-        opcion = int(input(
-            "Select your next move: \n1-Roll dice.\n2-Guess the country\n3-Check location and distance\n4-Quit game\n"))
+        opcion = int(input("Select your next move: \n1-Roll dice.\n2-Guess the country\n3-Check location and distance\n4-Quit game\n"))
+
         if opcion == 1:
+
             juego = int(input("Select minigame: \n1-Higher roll.\n2-Even or odd.\n3-Prime number or not\n"))
+
             if juego == 1:
                 higher_dice(juego)
 
@@ -164,25 +183,9 @@ def loop_game():
                serku = input("Prime number. yes or no:\n")
                prime_numbers(serku)
 
-
-
-
-
         elif opcion == 2:
-
-            puntos_pregunta = km_available * 0.15
-            print(f"You are at: {aeropuerto_1}")
             pais = input("Enter the country name: ")
-            if pais.lower() == get_country().lower():
-
-                km_available = km_available + puntos_pregunta
-                print(f"Nice! You won {puntos_pregunta:.2f} points. The country was: ")
-                print(get_country())
-                print(f"You now have: {km_available:.2f} km available.")
-            else:
-                km_available = km_available - puntos_pregunta
-                print(f"Wrong! You lost {puntos_pregunta:.2f} points.")
-                print(f"You now have: {km_available:.2f} km available.")
+            guess_country(pais)
 
         elif opcion == 3:
             print(f"Your current location is: {aeropuerto_1}\nYou have: {km_available:.2f} km available.")
