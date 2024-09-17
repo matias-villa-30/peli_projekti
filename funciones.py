@@ -141,7 +141,7 @@ def points_gained():
     global km_available
     puntos = km_available * 0.15
     km_available = km_available + puntos
-    return f"You won:  {puntos:.2f} km and you now have: {km_available:.2f} km available."
+    return f"You won: {puntos:.2f} km and you now have: {km_available:.2f} km available."
 
 def get_country():
     cursor = connection.cursor()
@@ -221,7 +221,7 @@ def loop_game():
 
     while km_available > 0:
         if km_available >= distancia:
-            print("You won!\n You can now reach your destination.\n Congratulations!")
+            print("You won!\nYou can now reach your destination.\nCongratulations!")
             break
 
         elif km_available <= 0:
