@@ -1,8 +1,5 @@
-import mysql.connector
-import random
-import math
-from geopy import distance
-from funciones import prime_numbers, get_starting_airport, get_destination_airport, get_new_airport, get_distance, get_country, higher_dice, even_odd, loop_game
+from funciones import prime_numbers, get_starting_airport, get_destination_airport, get_new_airport, get_distance, \
+    get_country, higher_dice, even_odd, loop_game, guess_country, drop_table, alter_foreign_key
 
 print("\nYou start at a random airport and you gotta travel to another random airport. "
       "\nYou will have available half the km of distance. "
@@ -16,11 +13,12 @@ print("\nYou start at a random airport and you gotta travel to another random ai
       "\nThe game ends when you earned enough km to reach your destination or you run out of available km.\n"
       "\n\tGood luck!\n")
 
-play = input("Press enter to start the game.\n")
+play = input("Enter your name to start the game: ")
+
 
 def run_game():
 
-    if play == "":
+    if play.lower():
         loop_game()
 
 
