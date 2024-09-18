@@ -4,7 +4,6 @@ import math
 from mysql.connector import errors
 from geopy import distance
 
-# Establish connection
 connection = mysql.connector.connect(
     host='localhost',
     port=3306,
@@ -14,7 +13,7 @@ connection = mysql.connector.connect(
     autocommit=True
 )
 
-# Functions for mini games
+# Functions for dice mini games
 
 def prime_numbers(dice):
     global km_available
@@ -78,7 +77,6 @@ def clear_unread_results():
 
         pass
 
-
 def get_destination_airport():
 
     loppu_lentoasema = "SELECT name FROM airport WHERE type = 'large_airport'"
@@ -116,9 +114,11 @@ def get_new_airport():
     global aeropuerto_1
     global tulos
 
-    cursor.execute("SELECT name FROM airport WHERE latitude_deg <= %s AND longitude_deg <= %s", (tulos[0], tulos[1]))
-    nuevo_aeropuerto = cursor.fetchone()
-    aeropuerto_1  = nuevo_aeropuerto[0]
+    cursor.execute("SELECT name FROM airport WHERE type = 'large_airport'")
+    nuevo_aeropuerto = cursor.fetchall()
+
+    random_nuevo = random.choice(nuevo_aeropuerto)
+    aeropuerto_1  = random_nuevo[0]
     return f"You were gifted a ticket to: {aeropuerto_1}"
 
 def points_deducted():
@@ -244,7 +244,7 @@ def loop_game():
                 pais = input("Enter the country name: ")
                 if pais.lower() == get_country().lower():
                     print(points_gained_2())
-                    print(get_starting_airport())
+                    print(get_new_airport())
                 else:
                     print(points_deducted())
 
@@ -253,7 +253,7 @@ def loop_game():
                 height = int(input("Enter the height of your airport: "))
                 if height == get_airport_height():
                     print(points_gained_2())
-                    print(get_starting_airport())
+                    print(get_new_airport())
                 else:
                     print(points_deducted())
 
@@ -263,7 +263,7 @@ def loop_game():
                 localidad = input("Enter the municipality name: ")
                 if localidad.lower() == get_location().lower():
                     print(points_gained_2())
-                    print(get_starting_airport())
+                    print(get_new_airport())
                 else:
                     print(points_deducted())
 
@@ -275,6 +275,8 @@ def loop_game():
             print("You lost!")
             break
 
-
+def run_game(play):
+    if play.lower():
+        loop_game()
 
 
