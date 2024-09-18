@@ -1,6 +1,7 @@
 import mysql.connector
 import random
 import math
+from mysql.connector import errors
 from geopy import distance
 
 # Establish connection
@@ -12,42 +13,6 @@ connection = mysql.connector.connect(
     password='',
     autocommit=True
 )
-
-# SQL functions
-
-def alter_foreign_key():
-    cursor = connection.cursor()
-    try:
-        # Replace 'constraint_name' with the actual foreign key constraint name
-        cursor.execute("ALTER TABLE goal_reached DROP FOREIGN KEY constraint_name1")
-        cursor.execute("ALTER TABLE goal DROP FOREIGN KEY constraint_name2")
-        cursor.execute("ALTER TABLE game DROP FOREIGN KEY constraint_name3")
-
-        connection.commit()
-
-    except mysql.connector.Error as err:
-        print(f"Error: {err}")
-        connection.rollback()
-
-    finally:
-        cursor.close()
-def drop_table():
-    cursor = connection.cursor()
-    try:
-        cursor.execute('DROP TABLE IF EXISTS game')
-        cursor.execute('DROP TABLE IF EXISTS goal')
-        cursor.execute('DROP TABLE IF EXISTS goal_reached')
-
-        connection.commit()
-
-    except mysql.connector.Error as err:
-        print(f"Error: {err}")
-        connection.rollback()
-
-    finally:
-        cursor.close()
-
-
 
 # Functions for mini games
 
@@ -79,19 +44,44 @@ def prime_numbers(dice):
         print(points_deducted())
 
 def get_starting_airport():
-
-    alku_lentoasema = "SELECT name FROM airport"
-
     cursor = connection.cursor()
-    cursor.execute(alku_lentoasema)
-    airports = cursor.fetchall()
     global random_alku_lentoasema
-    random_alku_lentoasema = random.choice(airports)
-    return random_alku_lentoasema[0]
+
+    alku_lentoasema = "SELECT name FROM airport WHERE type = 'large_airport'"
+
+    while True:
+        try:
+            cursor.execute(alku_lentoasema)
+            airports = cursor.fetchall()
+
+
+            random_alku_lentoasema = random.choice(airports)
+            return random_alku_lentoasema[0]
+
+        except errors.InternalError as e:
+            if "Unread result found" in str(e):
+                cursor.fetchall()
+            else:
+                raise e
+
+        except mysql.connector.Error as err:
+
+            raise err
+
+def clear_unread_results():
+    try:
+        cursor = connection.cursor()
+
+        while cursor.nextset():
+            cursor.fetchall()
+    except mysql.connector.Error as e:
+
+        pass
+
 
 def get_destination_airport():
 
-    loppu_lentoasema = "SELECT name FROM airport"
+    loppu_lentoasema = "SELECT name FROM airport WHERE type = 'large_airport'"
     cursor = connection.cursor()
     cursor.execute(loppu_lentoasema)
     airports_2 = cursor.fetchall()
@@ -100,7 +90,7 @@ def get_destination_airport():
     return random_loppu_lentoasema[0]
 
 def get_distance():
-
+    clear_unread_results()
     cursor = connection.cursor()
     global aeropuerto_1
     aeropuerto_1 = get_starting_airport()
@@ -128,8 +118,8 @@ def get_new_airport():
 
     cursor.execute("SELECT name FROM airport WHERE latitude_deg <= %s AND longitude_deg <= %s", (tulos[0], tulos[1]))
     nuevo_aeropuerto = cursor.fetchone()
-    aeropuerto_1  = nuevo_aeropuerto
-    return f"You were gifted a ticket to: {nuevo_aeropuerto[0]}"
+    aeropuerto_1  = nuevo_aeropuerto[0]
+    return f"You were gifted a ticket to: {aeropuerto_1}"
 
 def points_deducted():
     global km_available
@@ -140,6 +130,12 @@ def points_deducted():
 def points_gained():
     global km_available
     puntos = km_available * 0.15
+    km_available = km_available + puntos
+    return f"You won: {puntos:.2f} km and you now have: {km_available:.2f} km available."
+
+def points_gained_2():
+    global km_available
+    puntos = km_available * 0.40
     km_available = km_available + puntos
     return f"You won: {puntos:.2f} km and you now have: {km_available:.2f} km available."
 
@@ -169,6 +165,7 @@ def even_odd(par_impar):
         print(points_deducted())
 
 def get_airport_height():
+    clear_unread_results()
     cursor = connection.cursor()
     global aeropuerto_1
     cursor.execute("SELECT elevation_ft FROM airport WHERE name=%s", (aeropuerto_1,))
@@ -178,12 +175,12 @@ def get_airport_height():
     return altura[0]
 
 def get_location():
+    clear_unread_results()
     cursor = connection.cursor()
     global aeropuerto_1
     cursor.execute("SELECT municipality FROM airport WHERE name=%s", (aeropuerto_1,))
     location = cursor.fetchone()
     return location[0]
-
 
 def higher_dice(dado):
     global km_available
@@ -198,17 +195,6 @@ def higher_dice(dado):
     else:
 
         print(f"CPU wins: {dado_humano} player: {dado_humano}")
-        print(points_deducted())
-
-def guess_country(pais):
-
-    print(f"You are at: {aeropuerto_1}")
-
-    if pais.lower() == get_country():
-        print(points_gained())
-        print(get_new_airport())
-
-    else:
         print(points_deducted())
 
 
@@ -248,35 +234,42 @@ def loop_game():
                 print("Invalid input")
 
         elif opcion == 2:
-
             peli = int(input("Select minigame: \n1-Guess the country.\n2-Guess the elevation.\n3-Guess the location\n"))
 
             if peli == 1:
                 global aeropuerto_1
+                global aeropuerto_2
+
                 print(f"A reminder of your location: {aeropuerto_1}")
                 pais = input("Enter the country name: ")
-                guess_country(pais)
-
-            elif peli == 2:
-
-                height = int(input("Enter the height of your airport: "))
-                if height == get_airport_height():
-                    print(points_gained())
-                    print(get_new_airport())
+                if pais.lower() == get_country().lower():
+                    print(points_gained_2())
+                    print(get_starting_airport())
                 else:
                     print(points_deducted())
-                    print(get_new_airport())
+
+            elif peli == 2:
+                print(f"A reminder of your location: {aeropuerto_1}")
+                height = int(input("Enter the height of your airport: "))
+                if height == get_airport_height():
+                    print(points_gained_2())
+                    print(get_starting_airport())
+                else:
+                    print(points_deducted())
 
             elif peli == 3:
+                print(f"A reminder of your location: {aeropuerto_1}")
+
                 localidad = input("Enter the municipality name: ")
-                if localidad.lower() == get_location():
-                    print(points_gained())
+                if localidad.lower() == get_location().lower():
+                    print(points_gained_2())
+                    print(get_starting_airport())
                 else:
                     print(points_deducted())
 
 
         elif opcion == 3:
-            print(f"Your current location is: {aeropuerto_1}\nYou have: {km_available:.2f} km available.")
+            print(f"Your current location is: {aeropuerto_1}\nYou have: {km_available:.2f} km available and you still need to collect {distancia:.2f} km.")
 
         elif opcion == 4:
             print("You lost!")
