@@ -5,7 +5,5 @@ print(getStory())
 
 play = input("\nEnter your name to start the game: ")
 
-run_game(play)
-
 if __name__ == "__main__":
     run_game(play)

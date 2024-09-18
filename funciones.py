@@ -13,7 +13,49 @@ connection = mysql.connector.connect(
     autocommit=True
 )
 
+# Handle errors
+def clear_unread_results():
+    try:
+        cursor = connection.cursor()
+
+        while cursor.nextset():
+            cursor.fetchall()
+    except mysql.connector.Error as e:
+
+        pass
+
 # Functions for dice mini games
+def higher_dice(dado):
+    global km_available
+    global distancia
+    dado_humano = random.randint(1, 21)
+    dado_computer = random.randint(1, 21)
+
+    if dado_humano > dado_computer:
+
+        print(f"Player wins: {dado_humano} Computer: {dado_computer}")
+        print(points_gained())
+    else:
+
+        print(f"CPU wins: {dado_humano} player: {dado_humano}")
+        print(points_deducted())
+
+def even_odd(par_impar):
+    global km_available
+    global distancia
+    dado = random.randint(1, 21)
+    if par_impar.lower() == "even" and dado % 2 == 0:
+        print(points_gained())
+
+    elif par_impar.lower() == "odd" and dado % 2 != 0:
+        print(points_deducted())
+
+    elif par_impar.lower() != "even" and par_impar.lower() != "odd":
+        print("Wrong input, back to main menu")
+
+    else:
+        print(f"Result is: {dado}")
+        print(points_deducted())
 
 def prime_numbers(dice):
     global km_available
@@ -42,6 +84,29 @@ def prime_numbers(dice):
         print(f"{alkuluku} is a prime number.")
         print(points_deducted())
 
+# Point system
+
+def points_deducted():
+    global km_available
+    puntos = km_available * 0.25
+    km_available = km_available - puntos
+    return f"You lost: {puntos:.2f} km and you now have: {km_available:.2f} km available."
+
+def points_gained():
+    global km_available
+    puntos = km_available * 0.15
+    km_available = km_available + puntos
+    return f"You won: {puntos:.2f} km and you now have: {km_available:.2f} km available."
+
+def points_gained_2():
+    global km_available
+    puntos = km_available * 0.40
+    km_available = km_available + puntos
+    return f"You won: {puntos:.2f} km and you now have: {km_available:.2f} km available."
+
+
+# Functions for airport locations and distance
+
 def get_starting_airport():
     cursor = connection.cursor()
     global random_alku_lentoasema
@@ -63,15 +128,7 @@ def get_starting_airport():
         except mysql.connector.Error as err:
             raise err
 
-def clear_unread_results():
-    try:
-        cursor = connection.cursor()
 
-        while cursor.nextset():
-            cursor.fetchall()
-    except mysql.connector.Error as e:
-
-        pass
 
 def get_destination_airport():
     loppu_lentoasema = "SELECT name FROM airport WHERE type = 'large_airport'"
@@ -116,24 +173,7 @@ def get_new_airport():
     aeropuerto_1  = random_nuevo[0]
     return f"You were gifted a ticket to: {aeropuerto_1}"
 
-def points_deducted():
-    global km_available
-    puntos = km_available * 0.25
-    km_available = km_available - puntos
-    return f"You lost: {puntos:.2f} km and you now have: {km_available:.2f} km available."
-
-def points_gained():
-    global km_available
-    puntos = km_available * 0.15
-    km_available = km_available + puntos
-    return f"You won: {puntos:.2f} km and you now have: {km_available:.2f} km available."
-
-def points_gained_2():
-    global km_available
-    puntos = km_available * 0.40
-    km_available = km_available + puntos
-    return f"You won: {puntos:.2f} km and you now have: {km_available:.2f} km available."
-
+# Functions for airport minigames
 def get_country():
     cursor = connection.cursor()
     global aeropuerto_1
@@ -141,23 +181,6 @@ def get_country():
     pais = cursor.fetchone()
 
     return pais[0]
-
-def even_odd(par_impar):
-    global km_available
-    global distancia
-    dado = random.randint(1, 21)
-    if par_impar.lower() == "even" and dado % 2 == 0:
-        print(points_gained())
-
-    elif par_impar.lower() == "odd" and dado % 2 != 0:
-        print(points_deducted())
-
-    elif par_impar.lower() != "even" and par_impar.lower() != "odd":
-        print("Wrong input, back to main menu")
-
-    else:
-        print(f"Result is: {dado}")
-        print(points_deducted())
 
 def get_airport_height():
     clear_unread_results()
@@ -177,21 +200,7 @@ def get_location():
     location = cursor.fetchone()
     return location[0]
 
-def higher_dice(dado):
-    global km_available
-    global distancia
-    dado_humano = random.randint(1, 21)
-    dado_computer = random.randint(1, 21)
-
-    if dado_humano > dado_computer:
-
-        print(f"Player wins: {dado_humano} Computer: {dado_computer}")
-        print(points_gained())
-    else:
-
-        print(f"CPU wins: {dado_humano} player: {dado_humano}")
-        print(points_deducted())
-
+# RUN GAME
 
 def loop_game():
 
@@ -210,7 +219,9 @@ def loop_game():
             break
 
         opcion = int(input("Select your next move: \n1-Roll dice\n2-Guess airport information\n3-Check location and distance\n4-Quit game\n"))
-
+        if opcion == 4:
+            print("You lost!")
+            break
         if opcion == 1:
             juego = int(input("Select minigame: \n1-Higher roll\n2-Even or odd.\n3-Prime number or not\n"))
 
@@ -265,9 +276,7 @@ def loop_game():
 
         elif opcion == 3:
             print(f"Your current location is: {aeropuerto_1}\nYou have: {km_available:.2f} km available.")
-        elif opcion == 4:
-            print("You lost!")
-            break
+
 
 def run_game(play):
     if play.lower():
