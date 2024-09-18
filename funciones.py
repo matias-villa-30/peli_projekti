@@ -52,8 +52,6 @@ def get_starting_airport():
         try:
             cursor.execute(alku_lentoasema)
             airports = cursor.fetchall()
-
-
             random_alku_lentoasema = random.choice(airports)
             return random_alku_lentoasema[0]
 
@@ -62,9 +60,7 @@ def get_starting_airport():
                 cursor.fetchall()
             else:
                 raise e
-
         except mysql.connector.Error as err:
-
             raise err
 
 def clear_unread_results():
@@ -78,7 +74,6 @@ def clear_unread_results():
         pass
 
 def get_destination_airport():
-
     loppu_lentoasema = "SELECT name FROM airport WHERE type = 'large_airport'"
     cursor = connection.cursor()
     cursor.execute(loppu_lentoasema)
@@ -112,7 +107,7 @@ def get_distance():
 def get_new_airport():
     cursor = connection.cursor()
     global aeropuerto_1
-    global tulos
+    global distancia
 
     cursor.execute("SELECT name FROM airport WHERE type = 'large_airport'")
     nuevo_aeropuerto = cursor.fetchall()
@@ -269,8 +264,7 @@ def loop_game():
 
 
         elif opcion == 3:
-            print(f"Your current location is: {aeropuerto_1}\nYou have: {km_available:.2f} km available and you still need to collect {distancia:.2f} km.")
-
+            print(f"Your current location is: {aeropuerto_1}\nYou have: {km_available:.2f} km available.")
         elif opcion == 4:
             print("You lost!")
             break

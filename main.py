@@ -1,5 +1,5 @@
 from intro_story import getStory
-from funciones import run_game, prime_numbers, get_starting_airport, get_destination_airport, get_new_airport, get_distance, get_country, higher_dice, even_odd, loop_game
+from funciones import run_game
 
 print(getStory())
 
