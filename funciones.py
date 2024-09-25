@@ -86,24 +86,35 @@ def prime_numbers(dice):
 
 # Point system
 
+
+
+global voito
+global loss
+loss = 0
+voito = 0
 def points_deducted():
+    global loss
     global km_available
     puntos = km_available * 0.25
     km_available = km_available - puntos
+    loss += 1
     return f"You lost: {puntos:.2f} km and you now have: {km_available:.2f} km available."
 
 def points_gained():
+    global voito
     global km_available
     puntos = km_available * 0.15
     km_available = km_available + puntos
+    voito += 1
     return f"You won: {puntos:.2f} km and you now have: {km_available:.2f} km available."
 
 def points_gained_2():
+    global voito
     global km_available
     puntos = km_available * 0.40
     km_available = km_available + puntos
+    voito += 1
     return f"You won: {puntos:.2f} km and you now have: {km_available:.2f} km available."
-
 
 # Functions for airport locations and distance
 
@@ -203,26 +214,32 @@ def get_location():
 # RUN GAME
 
 def loop_game():
-
+    global voito
+    global loss
     global km_available
     global distancia
-
+    games_won = 0
+    games_lost = 0
     print(get_distance())
 
     while km_available > 0:
         if km_available >= distancia:
             print("You won!\nYou can now reach your destination.\nCongratulations!")
+            games_won += 1
             break
 
         elif km_available <= 0:
             print("You lost!")
+            games_lost += 1
             break
 
         opcion = int(input("Select your next move: \n1-Roll dice\n2-Guess airport information\n3-Check location and distance\n4-Quit game\n"))
         if opcion == 4:
             print("You lost!")
+            games_lost += 1
             break
         if opcion == 1:
+
             juego = int(input("Select minigame: \n1-Higher roll\n2-Even or odd.\n3-Prime number or not\n"))
 
             if juego == 1:
