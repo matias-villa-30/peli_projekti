@@ -13,6 +13,9 @@ connection = mysql.connector.connect(
     autocommit=True
 )
 
+# Database functions
+
+
 # Handle errors
 def clear_unread_results():
     try:
@@ -86,12 +89,11 @@ def prime_numbers(dice):
 
 # Point system
 
-
-
 global voito
 global loss
 loss = 0
 voito = 0
+
 def points_deducted():
     global loss
     global km_available
@@ -122,6 +124,7 @@ def get_starting_airport():
     cursor = connection.cursor()
     global random_alku_lentoasema
 
+
     alku_lentoasema = "SELECT name FROM airport WHERE type = 'large_airport'"
 
     while True:
@@ -129,6 +132,7 @@ def get_starting_airport():
             cursor.execute(alku_lentoasema)
             airports = cursor.fetchall()
             random_alku_lentoasema = random.choice(airports)
+
             return random_alku_lentoasema[0]
 
         except errors.InternalError as e:
@@ -138,7 +142,6 @@ def get_starting_airport():
                 raise e
         except mysql.connector.Error as err:
             raise err
-
 
 
 def get_destination_airport():
@@ -172,6 +175,9 @@ def get_distance():
 
     return f"Distance from: {aeropuerto_1} to: {aeropuerto_2} is: {distancia:.2f} km.\nYou have {km_available:.2f} km available to reach your destination.\n"
 
+
+
+
 def get_new_airport():
     cursor = connection.cursor()
     global aeropuerto_1
@@ -182,6 +188,7 @@ def get_new_airport():
 
     random_nuevo = random.choice(nuevo_aeropuerto)
     aeropuerto_1  = random_nuevo[0]
+
     return f"You were gifted a ticket to: {aeropuerto_1}"
 
 # Functions for airport minigames
@@ -295,7 +302,9 @@ def loop_game():
             print(f"Your current location is: {aeropuerto_1}\nYou have: {km_available:.2f} km available.")
 
 
-def run_game(play):
+def run_game():
+    play = input("\nEnter your name to start the game: ")
+
     if play.lower():
         loop_game()
 
