@@ -4,6 +4,8 @@ import math
 from mysql.connector import errors
 from geopy import distance
 
+
+
 connection = mysql.connector.connect(
     host='localhost',
     port=3306,
@@ -89,10 +91,7 @@ def prime_numbers(dice):
 
 # Point system
 
-global voito
-global loss
-loss = 0
-voito = 0
+
 
 def points_deducted():
     global loss
@@ -123,7 +122,8 @@ def points_gained_2():
 def get_starting_airport():
     cursor = connection.cursor()
     global random_alku_lentoasema
-
+    global aeropuertos_visitados
+    aeropuertos_visitados = []
 
     alku_lentoasema = "SELECT name FROM airport WHERE type = 'large_airport'"
 
@@ -132,7 +132,7 @@ def get_starting_airport():
             cursor.execute(alku_lentoasema)
             airports = cursor.fetchall()
             random_alku_lentoasema = random.choice(airports)
-
+            aeropuertos_visitados.append(random_alku_lentoasema[0])
             return random_alku_lentoasema[0]
 
         except errors.InternalError as e:
@@ -182,23 +182,29 @@ def get_new_airport():
     cursor = connection.cursor()
     global aeropuerto_1
     global distancia
-
+    global aeropuertos_visitados
     cursor.execute("SELECT name FROM airport WHERE type = 'large_airport'")
     nuevo_aeropuerto = cursor.fetchall()
 
     random_nuevo = random.choice(nuevo_aeropuerto)
     aeropuerto_1  = random_nuevo[0]
+    aeropuertos_visitados.append(aeropuerto_1)
+
 
     return f"You were gifted a ticket to: {aeropuerto_1}"
 
 # Functions for airport minigames
 def get_country():
     cursor = connection.cursor()
+    global pais
+    global play
     global aeropuerto_1
     cursor.execute("SELECT country.name FROM country JOIN airport ON airport.iso_country = country.iso_country WHERE airport.name=%s", (aeropuerto_1,))
     pais = cursor.fetchone()
 
     return pais[0]
+
+
 
 def get_airport_height():
     clear_unread_results()
@@ -219,15 +225,51 @@ def get_location():
     return location[0]
 
 # RUN GAME
+def create_tables():
+    cursor = connection.cursor()
+    try:
+        cursor.execute("""
+            CREATE TABLE estadisticas (
+                player_name VARCHAR(255),
+                airports_visited VARCHAR(255)
+            )
+        """)
+        connection.commit()
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    finally:
+        cursor.close()  # Close the cursor to free up resources
+
+
+def insert_data():
+    global play
+    global aeropuertos_visitados
+    cursor = connection.cursor()
+    # Example list of airports visited
+
+    # Prepare the data for insertion (e.g., all rows associated with a specific player)
+    data = [(play, airport) for airport in aeropuertos_visitados]
+
+    # Use executemany to insert all rows at once
+    cursor.executemany("INSERT INTO estadisticas (player_name, airports_visited) VALUES (%s, %s)", data)
+    connection.commit()  # Commit the changes
+
 
 def loop_game():
+    global aeropurtos_visitados
     global voito
     global loss
     global km_available
     global distancia
+    global games_won
+    global aerpuerto_1
+    loss = 0
+    voito = 0
     games_won = 0
     games_lost = 0
     print(get_distance())
+
+
 
     while km_available > 0:
         if km_available >= distancia:
@@ -241,10 +283,13 @@ def loop_game():
             break
 
         opcion = int(input("Select your next move: \n1-Roll dice\n2-Guess airport information\n3-Check location and distance\n4-Quit game\n"))
+
         if opcion == 4:
             print("You lost!")
             games_lost += 1
+            insert_data()
             break
+
         if opcion == 1:
 
             juego = int(input("Select minigame: \n1-Higher roll\n2-Even or odd.\n3-Prime number or not\n"))
@@ -269,8 +314,9 @@ def loop_game():
             if peli == 1:
                 global aeropuerto_1
                 global aeropuerto_2
-
+                global aeropuertos_visitados
                 print(f"A reminder of your location: {aeropuerto_1}")
+                print(aeropuertos_visitados)
                 pais = input("Enter the country name: ")
                 if pais.lower() == get_country().lower():
                     print(points_gained_2())
@@ -303,9 +349,10 @@ def loop_game():
 
 
 def run_game():
+    global play
     play = input("\nEnter your name to start the game: ")
 
-    if play.lower():
-        loop_game()
+
+    loop_game()
 
 
