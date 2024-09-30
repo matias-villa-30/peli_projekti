@@ -31,8 +31,7 @@ def clear_unread_results():
 
 # Functions for dice mini games
 def higher_dice(dado):
-    global km_available
-    global distancia
+
     dado_humano = random.randint(1, 21)
     dado_computer = random.randint(1, 21)
 
@@ -46,8 +45,7 @@ def higher_dice(dado):
         print(points_deducted())
 
 def even_odd(par_impar):
-    global km_available
-    global distancia
+
     dado = random.randint(1, 21)
     if par_impar.lower() == "even" and dado % 2 == 0:
         print(points_gained())
@@ -63,8 +61,7 @@ def even_odd(par_impar):
         print(points_deducted())
 
 def prime_numbers(dice):
-    global km_available
-    global distancia
+
     alkuluku = random.randint(1, 21)
     on_alkuluku = True
 
@@ -92,11 +89,18 @@ def prime_numbers(dice):
 # Point system
 
 
+global km_lost
+global km_won
+km_lost = 0
+km_won = 0
 
 def points_deducted():
     global loss
     global km_available
+    global km_lost
+
     puntos = km_available * 0.25
+    km_lost += puntos
     km_available = km_available - puntos
     loss += 1
     return f"You lost: {puntos:.2f} km and you now have: {km_available:.2f} km available."
@@ -104,7 +108,10 @@ def points_deducted():
 def points_gained():
     global voito
     global km_available
+    global km_won
+
     puntos = km_available * 0.15
+    km_won += puntos
     km_available = km_available + puntos
     voito += 1
     return f"You won: {puntos:.2f} km and you now have: {km_available:.2f} km available."
@@ -112,8 +119,10 @@ def points_gained():
 def points_gained_2():
     global voito
     global km_available
+    global km_won
     puntos = km_available * 0.40
     km_available = km_available + puntos
+    km_won += puntos
     voito += 1
     return f"You won: {puntos:.2f} km and you now have: {km_available:.2f} km available."
 
@@ -229,7 +238,7 @@ def create_tables():
     cursor = connection.cursor()
     try:
         cursor.execute("""
-            CREATE TABLE estadisticas (
+            CREATE TABLE stats_airport (
                 player_name VARCHAR(255),
                 airports_visited VARCHAR(255)
             )
@@ -240,8 +249,26 @@ def create_tables():
     finally:
         cursor.close()  # Close the cursor to free up resources
 
+def create_tables2():
+    cursor = connection.cursor()
+    try:
+        cursor.execute("""
+            CREATE TABLE stats_minigames (
+                player_name VARCHAR(255),
+                minigames_won INT,
+                minigames_lost INT,
+                km_won INT,
+                km_lost INT
+            )
+        """)
+        connection.commit()
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    finally:
+        cursor.close()  # Close the cursor to free up resources
 
-def insert_data():
+
+def insert_airport_data():
     global play
     global aeropuertos_visitados
     cursor = connection.cursor()
@@ -251,8 +278,15 @@ def insert_data():
     data = [(play, airport) for airport in aeropuertos_visitados]
 
     # Use executemany to insert all rows at once
-    cursor.executemany("INSERT INTO estadisticas (player_name, airports_visited) VALUES (%s, %s)", data)
+    cursor.executemany("INSERT INTO stats_airport (player_name, airports_visited) VALUES (%s, %s)", data)
     connection.commit()  # Commit the changes
+
+def insert_minigame_data():
+    global play, voito, loss, km_won, km_lost
+    cursor = connection.cursor()
+    cursor.execute("INSERT INTO stats_minigames (player_name, minigames_won, minigames_lost, km_won, km_lost) VALUES (%s, %s, %s, %s, %s)", (play, voito, loss, km_won, km_lost))
+    connection.commit()  # Commit the changes
+
 
 
 def loop_game():
@@ -271,15 +305,21 @@ def loop_game():
 
 
 
+
+
     while km_available > 0:
         if km_available >= distancia:
             print("You won!\nYou can now reach your destination.\nCongratulations!")
             games_won += 1
+            insert_airport_data()
+            insert_minigame_data()
             break
 
         elif km_available <= 0:
             print("You lost!")
             games_lost += 1
+            insert_airport_data()
+            insert_minigame_data()
             break
 
         opcion = int(input("Select your next move: \n1-Roll dice\n2-Guess airport information\n3-Check location and distance\n4-Quit game\n"))
@@ -287,7 +327,8 @@ def loop_game():
         if opcion == 4:
             print("You lost!")
             games_lost += 1
-            insert_data()
+            insert_airport_data()
+            insert_minigame_data()
             break
 
         if opcion == 1:
