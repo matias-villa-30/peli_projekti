@@ -5,7 +5,6 @@ from mysql.connector import errors
 from geopy import distance
 
 
-
 connection = mysql.connector.connect(
     host='localhost',
     port=3306,
@@ -152,7 +151,6 @@ def get_starting_airport():
         except mysql.connector.Error as err:
             raise err
 
-
 def get_destination_airport():
     loppu_lentoasema = "SELECT name FROM airport WHERE type = 'large_airport'"
     cursor = connection.cursor()
@@ -184,9 +182,6 @@ def get_distance():
 
     return f"Distance from: {aeropuerto_1} to: {aeropuerto_2} is: {distancia:.2f} km.\nYou have {km_available:.2f} km available to reach your destination.\n"
 
-
-
-
 def get_new_airport():
     cursor = connection.cursor()
     global aeropuerto_1
@@ -214,7 +209,6 @@ def get_country():
     return pais[0]
 
 
-
 def get_airport_height():
     clear_unread_results()
     cursor = connection.cursor()
@@ -234,39 +228,6 @@ def get_location():
     return location[0]
 
 # RUN GAME
-def create_tables():
-    cursor = connection.cursor()
-    try:
-        cursor.execute("""
-            CREATE TABLE stats_airport (
-                player_name VARCHAR(255),
-                airports_visited VARCHAR(255)
-            )
-        """)
-        connection.commit()
-    except mysql.connector.Error as err:
-        print(f"Error: {err}")
-    finally:
-        cursor.close()  # Close the cursor to free up resources
-
-def create_tables2():
-    cursor = connection.cursor()
-    try:
-        cursor.execute("""
-            CREATE TABLE stats_minigames (
-                player_name VARCHAR(255),
-                minigames_won INT,
-                minigames_lost INT,
-                km_won INT,
-                km_lost INT
-            )
-        """)
-        connection.commit()
-    except mysql.connector.Error as err:
-        print(f"Error: {err}")
-    finally:
-        cursor.close()  # Close the cursor to free up resources
-
 
 def insert_airport_data():
     global play
@@ -287,8 +248,6 @@ def insert_minigame_data():
     cursor.execute("INSERT INTO stats_minigames (player_name, minigames_won, minigames_lost, km_won, km_lost) VALUES (%s, %s, %s, %s, %s)", (play, voito, loss, km_won, km_lost))
     connection.commit()  # Commit the changes
 
-
-
 def loop_game():
     global aeropurtos_visitados
     global voito
@@ -302,10 +261,6 @@ def loop_game():
     games_won = 0
     games_lost = 0
     print(get_distance())
-
-
-
-
 
     while km_available > 0:
         if km_available >= distancia:
