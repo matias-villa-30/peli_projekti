@@ -1,4 +1,4 @@
-TABLE goal_reached, goal, game;
+DROP TABLE goal_reached, goal, game;
 
 CREATE TABLE stats_minigames (
                 player_name VARCHAR(255),
