@@ -104,6 +104,17 @@ def points_deducted():
     loss += 1
     return f"You lost: {puntos:.2f} km and you now have: {km_available:.2f} km available."
 
+def points_deducted2():
+    global loss
+    global km_available
+    global km_lost
+
+    puntos = km_available * 0.40
+    km_lost += puntos
+    km_available = km_available - puntos
+    loss += 1
+    return f"You lost: {puntos:.2f} km and you now have: {km_available:.2f} km available."
+
 def points_gained():
     global voito
     global km_available
@@ -262,68 +273,58 @@ def loop_game():
     games_lost = 0
     print(get_distance())
 
-    while km_available > 0:
-        if km_available >= distancia:
-            print("You won!\nYou can now reach your destination.\nCongratulations!")
-            games_won += 1
-            insert_airport_data()
-            insert_minigame_data()
-            break
+    while True:
 
-        elif km_available <= 0:
+
+        opcion = input("Select your next move: \n1-Roll dice\n2-Guess airport information\n3-Check location and distance\n4-Quit game\n")
+
+
+
+        if opcion < "0" or opcion > "4":
+            print("Invalid input")
+
+        if opcion == "4":
             print("You lost!")
             games_lost += 1
             insert_airport_data()
             insert_minigame_data()
             break
 
-        opcion = int(input("Select your next move: \n1-Roll dice\n2-Guess airport information\n3-Check location and distance\n4-Quit game\n"))
+        if opcion == "1":
 
+            juego = input("Select minigame: \n1-Higher roll\n2-Even or odd.\n3-Prime number or not\n")
 
-        if opcion < 0 or opcion > 4:
-            print("Try again")
-        if opcion == 4:
-            print("You lost!")
-            games_lost += 1
-            insert_airport_data()
-            insert_minigame_data()
-            break
-
-        if opcion == 1:
-
-            juego = int(input("Select minigame: \n1-Higher roll\n2-Even or odd.\n3-Prime number or not\n"))
-
-            if juego == 1:
+            if juego == "1":
                 higher_dice(juego)
 
-            elif juego == 2:
+            elif juego == "2":
                 player_input = input("Even or odd: ")
                 even_odd(player_input)
 
-            elif juego == 3:
+            elif juego == "3":
                serku = input("Prime number. yes or no:\n")
                prime_numbers(serku)
 
             else:
                 print("Invalid input")
 
-        elif opcion == 2:
-            peli = int(input("Select minigame: \n1-Guess the country.\n2-Guess the elevation.\n3-Guess the location\n"))
+        elif opcion == "2":
+            peli = input("Select minigame: \n1-Guess the country.\n2-Guess the elevation.\n3-Guess the location\n")
 
-            if peli == 1:
+            if peli == "1":
                 global aeropuerto_1
                 global aeropuerto_2
                 global aeropuertos_visitados
                 print(f"A reminder of your location: {aeropuerto_1}")
-                print(aeropuertos_visitados)
+
                 pais = input("Enter the country name: ")
                 if pais.lower() == get_country().lower():
                     print(points_gained_2())
                     print(get_new_airport())
                 else:
-                    print(points_deducted())
+                    print(points_deducted2())
 
-            elif peli == 2:
+            elif peli == "2":
                 print(f"A reminder of your location: {aeropuerto_1}")
                 height = int(input("Enter the height of your airport: "))
                 if height == get_airport_height():
@@ -332,7 +333,7 @@ def loop_game():
                 else:
                     print(points_deducted())
 
-            elif peli == 3:
+            elif peli == "3":
                 print(f"A reminder of your location: {aeropuerto_1}")
 
                 localidad = input("Enter the municipality name: ")
@@ -343,8 +344,22 @@ def loop_game():
                     print(points_deducted())
 
 
-        elif opcion == 3:
+        elif opcion == "3":
             print(f"Your current location is: {aeropuerto_1}\nYou have: {km_available:.2f} km available.")
+
+        if km_available <= 50:
+            print("You lost!")
+            games_lost += 1
+            insert_airport_data()
+            insert_minigame_data()
+            break
+
+        if km_available >= distancia:
+            print("You won!\nYou can now reach your destination.\nCongratulations!")
+            games_won += 1
+            insert_airport_data()
+            insert_minigame_data()
+            break
 
 
 def run_game():
