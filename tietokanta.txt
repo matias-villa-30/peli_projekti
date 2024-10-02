@@ -1,0 +1,12 @@
+TABLE goal_reached, goal, game;
+
+CREATE TABLE stats_minigames (
+                player_name VARCHAR(255),
+                minigames_won INT,
+                minigames_lost INT,
+                km_won INT,
+                km_lost INT))
+
+CREATE TABLE stats_airport (
+                player_name VARCHAR(255),
+                airports_visited VARCHAR(255))
