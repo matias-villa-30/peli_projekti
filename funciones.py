@@ -279,6 +279,9 @@ def loop_game():
 
         opcion = int(input("Select your next move: \n1-Roll dice\n2-Guess airport information\n3-Check location and distance\n4-Quit game\n"))
 
+
+        if opcion < 0 or opcion > 4:
+            print("Try again")
         if opcion == 4:
             print("You lost!")
             games_lost += 1
