@@ -5,7 +5,7 @@ CREATE TABLE stats_minigames (
                 minigames_won INT,
                 minigames_lost INT,
                 km_won INT,
-                km_lost INT))
+                km_lost INT)
 
 CREATE TABLE stats_airport (
                 player_name VARCHAR(255),
